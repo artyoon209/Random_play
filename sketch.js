@@ -1,21 +1,29 @@
-let osc, reverb;
+let noise, osc, reverb;
 let dots = [];
 let isRunning = false;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  background(2, 5, 40); // 어두운 남청색
+  background(2, 5, 40); // 어두운 바다 느낌 배경
   noFill();
-  strokeWeight(2);
+  strokeWeight(1.5);
+
+  // 노이즈와 오실레이터 초기화
+  noise = new p5.Noise('white');
+  noise.amp(0);
+  noise.start();
 
   osc = new p5.Oscillator('sine');
-  osc.start();
   osc.amp(0);
+  osc.start();
 
   reverb = new p5.Reverb();
+  noise.disconnect();
+  noise.connect(reverb);
   osc.disconnect();
   osc.connect(reverb);
-  reverb.process(osc, 0.2, 0.2);
+  reverb.process(noise, 0.5, 0.5);
+  reverb.process(osc, 1, 1);
 
   for (let i = 0; i < 3; i++) {
     createRandomObject();
@@ -24,13 +32,20 @@ function setup() {
 
 function scheduleNext() {
   if (!isRunning) return;
-  let delay = random(200, 250);
-  for (let i = 0; i < 2; i++) createRandomObject();
+
+  let delay = random(1000, 1400); // 전체 묶음 간격
+  for (let i = 0; i < 4; i++) {
+    let offset = random(0, 1200); // 각 점의 생성 시점은 0~400ms 랜덤 오프셋
+    setTimeout(() => {
+      if (isRunning) createRandomObject();
+    }, offset);
+  }
+
   setTimeout(scheduleNext, delay);
 }
 
 function draw() {
-  background(2, 5, 40, 20); // 잔상 효과
+  background(2, 5, 40, 20); // 잔상 남기는 효과
   for (let dot of dots) {
     dot.update(dots);
     dot.display();
@@ -51,6 +66,17 @@ function mousePressed() {
   toggleRunning();
 }
 
+function triggerPopSound() {
+  // 노이즈 팝
+  noise.amp(0.08, 0.02);
+  setTimeout(() => noise.amp(0.005, 0.04), 10);
+
+  // 사인파 클릭
+  osc.freq(random(400, 435));
+  osc.amp(0.03, 0.03);
+  setTimeout(() => osc.amp(0, 0.1), 20);
+}
+
 function createRandomObject() {
   let x, y, newDot;
   let overlapping = true;
@@ -67,32 +93,22 @@ function createRandomObject() {
     }
   }
   dots.push(newDot);
-
-  let freq = random(200, 220);
-  let dur = 0.08;
-  osc.freq(freq);
-  osc.amp(1, 0.01);
-  setTimeout(() => {
-    osc.amp(0, 0.1);
-  }, dur * 200);
+  triggerPopSound();
 }
 
 class Dot {
   constructor(x, y) {
     this.pos = createVector(x, y);
-    this.baseRadius = 3;
+    this.baseRadius = 6;
     this.radius = this.baseRadius;
-    this.targetRadius = random(8, 90);
-    this.growthSpeed = 5;
+    this.targetRadius = random(60, 90);
+    this.growthSpeed = 1;
     this.color = random([
-      color(120, 190, 200),
-      color(110, 180, 230),
-      color(90, 160, 190),
-      color(180, 220, 240),
-      color(200, 240, 255),
-      color(160, 200, 220),
-      color(100, 170, 200),
-      color(140, 190, 230)
+      color(173, 216, 230), // 연하늘
+      color(135, 206, 235), // 하늘
+      color(100, 149, 237), // 코발트
+      color(70, 130, 180),  // 강한 파랑
+      color(220, 220, 255)  // 푸른빛 흰색
     ]);
     this.locked = false;
     this.shapePoints = [];
