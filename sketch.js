@@ -1,161 +1,97 @@
-let osc, reverb;
-let dots = [];
+
+let objects = [];
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  background(0);
   noFill();
   strokeWeight(2);
+  frameRate(60);
 
-  osc = new p5.Oscillator('triangle');
-  osc.start();
+  osc = new p5.Oscillator('sine');
   osc.amp(0);
+  osc.start();
+
+  env = new p5.Envelope();
+  env.setADSR(0.01, 0.1, 0.1, 0.5);
+  env.setRange(0.3, 0);
 
   reverb = new p5.Reverb();
-  osc.disconnect();
-  osc.connect(reverb);
   reverb.process(osc, 3, 2);
 
-  for (let i = 0; i < 5; i++) {
-    createRandomObject();
-  }
+  // resume AudioContext after a short timeout
+  userStartAudio();
 
-  setInterval(() => {
-    createRandomObject();
-    createRandomObject();
-  }, 200);
+  // Generate first set
+  for (let i = 0; i < 5; i++) {
+    createObject();
+  }
 }
 
 function draw() {
   background(0);
-  for (let dot of dots) {
-    dot.update(dots);
-    dot.display();
+  for (let obj of objects) {
+    obj.update();
+    obj.display();
+  }
+
+  if (frameCount % 10 === 0) {
+    for (let i = 0; i < 2; i++) {
+      createObject();
+    }
   }
 }
 
-function createRandomObject() {
-  let x, y, newDot;
-  let overlapping = true;
-  while (overlapping) {
-    x = random(width);
-    y = random(height);
-    newDot = new Dot(x, y);
-    overlapping = false;
-    for (let dot of dots) {
-      if (dist(newDot.pos.x, newDot.pos.y, dot.pos.x, dot.pos.y) < newDot.radius + dot.radius) {
-        overlapping = true;
+function createObject() {
+  let tries = 0;
+  let placed = false;
+  while (!placed && tries < 100) {
+    let x = random(width);
+    let y = random(height);
+    let size = 10;
+    let col = color(random(255), random(255), random(255));
+    let newObj = new InteractiveObject(x, y, size, col);
+    let overlaps = false;
+    for (let obj of objects) {
+      let d = dist(x, y, obj.x, obj.y);
+      if (d < (obj.size + newObj.size) / 2) {
+        overlaps = true;
         break;
       }
     }
+    if (!overlaps) {
+      objects.push(newObj);
+      soundPlay();
+      placed = true;
+    }
+    tries++;
   }
-  dots.push(newDot);
-
-  let freq = random(100, 104);
-  let dur = 0.05;
-  osc.freq(freq);
-  osc.amp(0.2, 0.02);
-  setTimeout(() => {
-    osc.amp(0, 0.2);
-  }, dur * 1000);
 }
 
-class Dot {
-  constructor(x, y) {
-    this.pos = createVector(x, y);
-    this.baseRadius = 5;
-    this.radius = this.baseRadius;
-    this.targetRadius = random(20, 60);
-    this.growthSpeed = 3;
-    this.color = random([
-      color(255, 100, 100),
-      color(255, 180, 180),
-      color(100, 150, 255),
-      color(180, 210, 255)
-    ]);
-    this.locked = false;
-    this.shapePoints = [];
+function soundPlay() {
+  if (getAudioContext().state !== 'running') {
+    getAudioContext().resume();
+  }
+  osc.start();
+  env.play(osc, 0, 0.05);
+}
+
+class InteractiveObject {
+  constructor(x, y, size, col) {
+    this.x = x;
+    this.y = y;
+    this.size = size;
+    this.col = col;
+    this.growth = 1;
   }
 
-  update(others) {
-    if (this.locked) return;
-
-    let canGrow = true;
-    for (let other of others) {
-      if (other === this) continue;
-      let d = dist(this.pos.x, this.pos.y, other.pos.x, other.pos.y);
-      if (d < this.radius + other.radius - 6) {
-        canGrow = false;
-        break;
-      }
-    }
-
-    if (canGrow && this.radius < this.targetRadius) {
-      this.radius += this.growthSpeed;
-    } else {
-      this.locked = true;
-      this.captureShape(others);
-    }
-  }
-
-  captureShape(others) {
-    this.shapePoints = [];
-    for (let i = 0; i <= 36; i++) {
-      let angle = TWO_PI * i / 36;
-      let x = cos(angle);
-      let y = sin(angle);
-      let r = this.radius;
-
-      for (let other of dots) {
-        if (other === this) continue;
-        let testPoint = p5.Vector.add(this.pos, createVector(x, y).mult(this.radius));
-        let d = dist(testPoint.x, testPoint.y, other.pos.x, other.pos.y);
-        if (d < this.radius + other.radius - 2) {
-          r -= map(this.radius + other.radius - d, 0, this.radius, 0, 8);
-        }
-      }
-
-      let vx = this.pos.x + x * r;
-      let vy = this.pos.y + y * r;
-      this.shapePoints.push(createVector(vx, vy));
+  update() {
+    if (this.size < 60) {
+      this.size += this.growth * 3;
     }
   }
 
   display() {
-    stroke(this.color);
-    beginShape();
-    let points = this.locked && this.shapePoints.length > 0 ? this.shapePoints : this.generateShapePoints();
-    for (let pt of points) {
-      curveVertex(pt.x, pt.y);
-    }
-    endShape(CLOSE);
+    stroke(this.col);
+    ellipse(this.x, this.y, this.size);
   }
-
-  generateShapePoints() {
-    let shape = [];
-    for (let i = 0; i <= 36; i++) {
-      let angle = TWO_PI * i / 36;
-      let x = cos(angle);
-      let y = sin(angle);
-      let r = this.radius;
-
-      for (let other of dots) {
-        if (other === this) continue;
-        let testPoint = p5.Vector.add(this.pos, createVector(x, y).mult(this.radius));
-        let d = dist(testPoint.x, testPoint.y, other.pos.x, other.pos.y);
-        if (d < this.radius + other.radius - 2) {
-          r -= map(this.radius + other.radius - d, 0, this.radius, 0, 8);
-        }
-      }
-
-      let vx = this.pos.x + x * r;
-      let vy = this.pos.y + y * r;
-      shape.push(createVector(vx, vy));
-    }
-    return shape;
-  }
-}
-
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
 }
