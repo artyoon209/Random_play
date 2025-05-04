@@ -3,8 +3,8 @@ let dots = [];
 let isRunning = false;
 
 function setup() {
-  createCanvas(2048, 1080); // 2K 해상도로 설정
-  background(0);
+  createCanvas(windowWidth, windowHeight);
+  background(2, 5, 40); // 어두운 남청색
   noFill();
   strokeWeight(2);
 
@@ -15,7 +15,7 @@ function setup() {
   reverb = new p5.Reverb();
   osc.disconnect();
   osc.connect(reverb);
-  reverb.process(osc, 0.2 , 0.2);
+  reverb.process(osc, 0.2, 0.2);
 
   for (let i = 0; i < 3; i++) {
     createRandomObject();
@@ -30,7 +30,7 @@ function scheduleNext() {
 }
 
 function draw() {
-  background(0, 20);
+  background(2, 5, 40, 20); // 잔상 효과
   for (let dot of dots) {
     dot.update(dots);
     dot.display();
@@ -68,7 +68,7 @@ function createRandomObject() {
   }
   dots.push(newDot);
 
-  let freq = random(150, 160);
+  let freq = random(200, 220);
   let dur = 0.08;
   osc.freq(freq);
   osc.amp(1, 0.01);
@@ -80,17 +80,20 @@ function createRandomObject() {
 class Dot {
   constructor(x, y) {
     this.pos = createVector(x, y);
-    this.baseRadius = 5;
+    this.baseRadius = 3;
     this.radius = this.baseRadius;
-    this.targetRadius = random(20, 70);
+    this.targetRadius = random(10, 30);
     this.growthSpeed = 6;
     this.color = random([
-     color(255, 190, 110),
-     color(255, 250, 150),
-     color(150, 200, 255),
-     color(170, 140, 255),
+      color(120, 190, 200),
+      color(110, 180, 230),
+      color(90, 160, 190),
+      color(180, 220, 240),
+      color(200, 240, 255),
+      color(160, 200, 220),
+      color(100, 170, 200),
+      color(140, 190, 230)
     ]);
-
     this.locked = false;
     this.shapePoints = [];
   }
@@ -175,5 +178,5 @@ class Dot {
 }
 
 function windowResized() {
-  resizeCanvas(2048, 1080);
+  resizeCanvas(windowWidth, windowHeight);
 }
