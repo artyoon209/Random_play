@@ -16,7 +16,7 @@ function setup() {
   reverb = new p5.Reverb();
   osc.disconnect();
   osc.connect(reverb);
-  reverb.process(osc, 0.3 , 0.3);
+  reverb.process(osc, 0.2 , 0.2);
 
   for (let i = 0; i < 3; i++) {
     createRandomObject();
@@ -74,8 +74,8 @@ function createRandomObject() {
   osc.freq(freq);
   osc.amp(1, 0.01);
   setTimeout(() => {
-    osc.amp(0, 0.07);
-  }, dur * 300);
+    osc.amp(0, 0.1);
+  }, dur * 200);
 }
 
 class Dot {
@@ -86,14 +86,15 @@ class Dot {
     this.targetRadius = random(20, 70);
     this.growthSpeed = 6;
     this.color = random([
-      color(255, 100, 100),
-      color(255, 180, 180),
-      color(100, 150, 255),
-      color(180, 210, 255),
-      color(255, 165, 0),
-      color(0, 128, 0),
-      color(255, 255, 0)
-    ]);
+    color(255, 120, 120),   // 연빨강
+    color(255, 190, 110),   // 살구 주황
+    color(255, 250, 150),   // 연노랑
+    color(160, 230, 180),   // 민트초록
+    color(150, 200, 255),   // 하늘파랑
+    color(170, 140, 255),   // 연보라남색
+    color(210, 160, 255)    // 연보라
+]);
+
     this.locked = false;
     this.shapePoints = [];
   }
