@@ -16,7 +16,7 @@ function setup() {
   reverb = new p5.Reverb();
   osc.disconnect();
   osc.connect(reverb);
-  reverb.process(osc, 0.3, 0.3);
+  reverb.process(osc, 0.5 , 0.5);
 
   for (let i = 0; i < 3; i++) {
     createRandomObject();
@@ -25,8 +25,8 @@ function setup() {
 
 function scheduleNext() {
   if (!isRunning) return;
-  let delay = random(100, 150);
-  for (let i = 0; i < 3; i++) createRandomObject();
+  let delay = random(200, 250);
+  for (let i = 0; i < 2; i++) createRandomObject();
   setTimeout(scheduleNext, delay);
 }
 
@@ -75,7 +75,7 @@ function createRandomObject() {
   osc.amp(0.8, 0.01);
   setTimeout(() => {
     osc.amp(0, 0.07);
-  }, dur * 400);
+  }, dur * 300);
 }
 
 class Dot {
