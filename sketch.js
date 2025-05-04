@@ -1,99 +1,161 @@
-let objects = [];
-let env, osc, reverb;
-let maxAttempts = 10;
+let osc, reverb;
+let dots = [];
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  background(0);
   noFill();
-  env = new p5.Envelope();
-  env.setADSR(0.01, 0.1, 0.1, 0.3);  // 짧은 소리
+  strokeWeight(2);
 
-  osc = new p5.Oscillator('sine');  // 원래대로 sine파
+  osc = new p5.Oscillator('triangle');
   osc.start();
   osc.amp(0);
 
   reverb = new p5.Reverb();
-  reverb.process(osc, 3, 2); // 리버브 적용
+  osc.disconnect();
+  osc.connect(reverb);
+  reverb.process(osc, 3, 2);
 
-  frameRate(60);
+  for (let i = 0; i < 5; i++) {
+    createRandomObject();
+  }
+
+  setInterval(() => {
+    createRandomObject();
+    createRandomObject();
+  }, 200);
 }
 
 function draw() {
-  background(0, 20);
-
-  // 매 프레임마다 여러 개 생성 시도
-  for (let i = 0; i < 2; i++) {
-    let attempts = 0;
-    let success = false;
-
-    while (attempts < maxAttempts && !success) {
-      let x = random(width);
-      let y = random(height);
-      let size = 10;
-      let col = color(random(100,255), random(100,255), random(100,255));
-      let freq = map(x, 0, width, 100, 1000);
-
-      let overlapping = false;
-      for (let obj of objects) {
-        let d = dist(x, y, obj.x, obj.y);
-        if (d < (obj.size + size) / 2 + 10) {
-          overlapping = true;
-          break;
-        }
-      }
-
-      if (!overlapping) {
-        objects.push(new Circle(x, y, size, col, freq));
-        success = true;
-      }
-      attempts++;
-    }
-  }
-
-  for (let obj of objects) {
-    obj.update();
-    obj.display();
+  background(0);
+  for (let dot of dots) {
+    dot.update(dots);
+    dot.display();
   }
 }
 
-class Circle {
-  constructor(x, y, size, col, freq) {
-    this.x = x;
-    this.y = y;
-    this.size = size;
-    this.maxSize = random(60, 120);
-    this.growth = 3.0;
-    this.col = col;
-    this.freq = freq;
-    this.played = false;
+function createRandomObject() {
+  let x, y, newDot;
+  let overlapping = true;
+  while (overlapping) {
+    x = random(width);
+    y = random(height);
+    newDot = new Dot(x, y);
+    overlapping = false;
+    for (let dot of dots) {
+      if (dist(newDot.pos.x, newDot.pos.y, dot.pos.x, dot.pos.y) < newDot.radius + dot.radius) {
+        overlapping = true;
+        break;
+      }
+    }
+  }
+  dots.push(newDot);
+
+  let freq = random(100, 400);
+  let dur = 0.05;
+  osc.freq(freq);
+  osc.amp(0.2, 0.02);
+  setTimeout(() => {
+    osc.amp(0, 0.2);
+  }, dur * 1000);
+}
+
+class Dot {
+  constructor(x, y) {
+    this.pos = createVector(x, y);
+    this.baseRadius = 5;
+    this.radius = this.baseRadius;
+    this.targetRadius = random(20, 60);
+    this.growthSpeed = 3;
+    this.color = random([
+      color(255, 100, 100),
+      color(255, 180, 180),
+      color(100, 150, 255),
+      color(180, 210, 255)
+    ]);
+    this.locked = false;
+    this.shapePoints = [];
   }
 
-  update() {
-    if (this.size < this.maxSize) {
-      this.size += this.growth;
-    } else {
-      this.size = this.maxSize;
-    }
+  update(others) {
+    if (this.locked) return;
 
-    for (let other of objects) {
-      if (other !== this) {
-        let d = dist(this.x, this.y, other.x, other.y);
-        if (d < (this.size + other.size) / 2) {
-          this.size -= 0.5;  // 겹치면 일그러짐 효과
-        }
+    let canGrow = true;
+    for (let other of others) {
+      if (other === this) continue;
+      let d = dist(this.pos.x, this.pos.y, other.pos.x, other.pos.y);
+      if (d < this.radius + other.radius - 6) {
+        canGrow = false;
+        break;
       }
     }
 
-    if (!this.played && this.size > 10) {
-      osc.freq(this.freq);
-      env.play(osc);
-      this.played = true;
+    if (canGrow && this.radius < this.targetRadius) {
+      this.radius += this.growthSpeed;
+    } else {
+      this.locked = true;
+      this.captureShape(others);
+    }
+  }
+
+  captureShape(others) {
+    this.shapePoints = [];
+    for (let i = 0; i <= 36; i++) {
+      let angle = TWO_PI * i / 36;
+      let x = cos(angle);
+      let y = sin(angle);
+      let r = this.radius;
+
+      for (let other of dots) {
+        if (other === this) continue;
+        let testPoint = p5.Vector.add(this.pos, createVector(x, y).mult(this.radius));
+        let d = dist(testPoint.x, testPoint.y, other.pos.x, other.pos.y);
+        if (d < this.radius + other.radius - 2) {
+          r -= map(this.radius + other.radius - d, 0, this.radius, 0, 8);
+        }
+      }
+
+      let vx = this.pos.x + x * r;
+      let vy = this.pos.y + y * r;
+      this.shapePoints.push(createVector(vx, vy));
     }
   }
 
   display() {
-    stroke(this.col);
-    strokeWeight(2);
-    ellipse(this.x, this.y, this.size);
+    stroke(this.color);
+    beginShape();
+    let points = this.locked && this.shapePoints.length > 0 ? this.shapePoints : this.generateShapePoints();
+    for (let pt of points) {
+      curveVertex(pt.x, pt.y);
+    }
+    endShape(CLOSE);
   }
+
+  generateShapePoints() {
+    let shape = [];
+    for (let i = 0; i <= 36; i++) {
+      let angle = TWO_PI * i / 36;
+      let x = cos(angle);
+      let y = sin(angle);
+      let r = this.radius;
+
+      for (let other of dots) {
+        if (other === this) continue;
+        let testPoint = p5.Vector.add(this.pos, createVector(x, y).mult(this.radius));
+        let d = dist(testPoint.x, testPoint.y, other.pos.x, other.pos.y);
+        if (d < this.radius + other.radius - 2) {
+          r -= map(this.radius + other.radius - d, 0, this.radius, 0, 8);
+        }
+      }
+
+      let vx = this.pos.x + x * r;
+      let vy = this.pos.y + y * r;
+      shape.push(createVector(vx, vy));
+    }
+    return shape;
+  }
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
 }
