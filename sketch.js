@@ -16,7 +16,7 @@ function setup() {
   reverb = new p5.Reverb();
   osc.disconnect();
   osc.connect(reverb);
-  reverb.process(osc, 3, 2);
+  reverb.process(osc, 1.5, 1.5);
 
   // 초기 점 몇 개
   for (let i = 0; i < 5; i++) {
