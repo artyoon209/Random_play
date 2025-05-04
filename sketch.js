@@ -65,8 +65,8 @@ class Dot {
     this.pos = createVector(x, y);
     this.baseRadius = 5;
     this.radius = this.baseRadius;
-    this.targetRadius = random(20, 60);
-    this.growthSpeed = 3;
+    this.targetRadius = random(20, 80);
+    this.growthSpeed = 6;
     this.color = random([
       color(255, 100, 100),
       color(255, 180, 180),
