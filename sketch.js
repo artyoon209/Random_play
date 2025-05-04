@@ -1,3 +1,4 @@
+
 let osc, reverb;
 let dots = [];
 let isRunning = false;
@@ -8,14 +9,14 @@ function setup() {
   noFill();
   strokeWeight(2);
 
-  osc = new p5.Oscillator('sine'); // 부드러운 물방울 소리
+  osc = new p5.Oscillator('sine');
   osc.start();
   osc.amp(0);
 
   reverb = new p5.Reverb();
   osc.disconnect();
   osc.connect(reverb);
-  reverb.process(osc, 0.3, 0.3); // 짧고 은은한 잔향
+  reverb.process(osc, 0.3, 0.3);
 
   for (let i = 0; i < 3; i++) {
     createRandomObject();
@@ -30,7 +31,7 @@ function scheduleNext() {
 }
 
 function draw() {
-  background(0);
+  background(0, 20);
   for (let dot of dots) {
     dot.update(dots);
     dot.display();
@@ -128,7 +129,7 @@ class Dot {
         let testPoint = p5.Vector.add(this.pos, createVector(x, y).mult(this.radius));
         let d = dist(testPoint.x, testPoint.y, other.pos.x, other.pos.y);
         if (d < this.radius + other.radius - 2) {
-          r -= map(this.radius + other.radius - d, 0, this.radius, 0, 8);
+          r -= map(this.radius + other.radius - d, 0, this.radius, 0, 20);
         }
       }
 
@@ -161,7 +162,7 @@ class Dot {
         let testPoint = p5.Vector.add(this.pos, createVector(x, y).mult(this.radius));
         let d = dist(testPoint.x, testPoint.y, other.pos.x, other.pos.y);
         if (d < this.radius + other.radius - 2) {
-          r -= map(this.radius + other.radius - d, 0, this.radius, 0, 8);
+          r -= map(this.radius + other.radius - d, 0, this.radius, 0, 20);
         }
       }
 
