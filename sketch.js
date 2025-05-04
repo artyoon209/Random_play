@@ -1,7 +1,6 @@
 let osc, reverb;
 let dots = [];
 let isRunning = false;
-let intervalID;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -9,19 +8,25 @@ function setup() {
   noFill();
   strokeWeight(2);
 
-  osc = new p5.Oscillator('triangle');
+  osc = new p5.Oscillator('sine'); // 부드러운 물방울 소리
   osc.start();
   osc.amp(0);
 
   reverb = new p5.Reverb();
   osc.disconnect();
   osc.connect(reverb);
-  reverb.process(osc, 1.5, 1.5);
+  reverb.process(osc, 0.3, 0.3); // 짧고 은은한 잔향
 
-  // 초기 점 몇 개
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 3; i++) {
     createRandomObject();
   }
+}
+
+function scheduleNext() {
+  if (!isRunning) return;
+  let delay = random(100, 250);
+  for (let i = 0; i < 3; i++) createRandomObject();
+  setTimeout(scheduleNext, delay);
 }
 
 function draw() {
@@ -34,14 +39,8 @@ function draw() {
 
 function toggleRunning() {
   isRunning = !isRunning;
-
   if (isRunning) {
-    intervalID = setInterval(() => {
-      createRandomObject();
-      createRandomObject();
-    }, 200);
-  } else {
-    clearInterval(intervalID);
+    scheduleNext();
   }
 }
 
@@ -49,7 +48,6 @@ function mousePressed() {
   if (getAudioContext().state !== 'running') {
     getAudioContext().resume();
   }
-
   toggleRunning();
 }
 
@@ -70,12 +68,12 @@ function createRandomObject() {
   }
   dots.push(newDot);
 
-  let freq = random(100, 500);
+  let freq = random(300, 310);
   let dur = 0.05;
   osc.freq(freq);
-  osc.amp(0.2, 0.02);
+  osc.amp(0.3, 0.01);
   setTimeout(() => {
-    osc.amp(0, 0.2);
+    osc.amp(0, 0.07);
   }, dur * 500);
 }
 
@@ -84,8 +82,8 @@ class Dot {
     this.pos = createVector(x, y);
     this.baseRadius = 5;
     this.radius = this.baseRadius;
-    this.targetRadius = random(20, 60);
-    this.growthSpeed = 3;
+    this.targetRadius = random(20, 50);
+    this.growthSpeed = 6;
     this.color = random([
       color(255, 100, 100),
       color(255, 180, 180),
