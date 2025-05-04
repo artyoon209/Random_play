@@ -24,7 +24,7 @@ function setup() {
 
 function scheduleNext() {
   if (!isRunning) return;
-  let delay = random(100, 250);
+  let delay = random(200, 250);
   for (let i = 0; i < 3; i++) createRandomObject();
   setTimeout(scheduleNext, delay);
 }
@@ -68,13 +68,13 @@ function createRandomObject() {
   }
   dots.push(newDot);
 
-  let freq = random(300, 310);
+  let freq = random(100, 110);
   let dur = 0.05;
   osc.freq(freq);
   osc.amp(0.3, 0.01);
   setTimeout(() => {
     osc.amp(0, 0.07);
-  }, dur * 500);
+  }, dur * 400);
 }
 
 class Dot {
