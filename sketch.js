@@ -1,10 +1,9 @@
-
 let osc, reverb;
 let dots = [];
 let isRunning = false;
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(2048, 1080); // 2K 해상도로 설정
   background(0);
   noFill();
   strokeWeight(2);
@@ -85,15 +84,11 @@ class Dot {
     this.radius = this.baseRadius;
     this.targetRadius = random(20, 70);
     this.growthSpeed = 6;
-
-    // ✨ 밝은 파스텔톤 계열로 수정
     this.color = random([
-      color(255, 230, 230),  // 밝은 핑크
-      color(255, 255, 200),  // 아이보리 옐로우
-      color(220, 250, 255),  // 연한 하늘
-      color(230, 220, 255),  // 연보라
-      color(240, 255, 250),  // 민트화이트
-      color(255, 255, 255)   // 흰색
+     color(255, 190, 110),
+     color(255, 250, 150),
+     color(150, 200, 255),
+     color(170, 140, 255),
     ]);
 
     this.locked = false;
@@ -145,27 +140,9 @@ class Dot {
   }
 
   display() {
-    let points = this.locked && this.shapePoints.length > 0
-      ? this.shapePoints
-      : this.generateShapePoints();
-
-    // ✨ 글로우 효과용 외곽선 (투명도 낮은 굵은 선 여러 겹)
-    for (let g = 10; g > 0; g--) {
-      let glow = color(this.color);
-      glow.setAlpha(5 * g); // 투명도 단계적으로 낮게
-      strokeWeight(g);
-      stroke(glow);
-      beginShape();
-      for (let pt of points) {
-        curveVertex(pt.x, pt.y);
-      }
-      endShape(CLOSE);
-    }
-
-    // ✨ 중앙 라인
-    strokeWeight(1.5);
     stroke(this.color);
     beginShape();
+    let points = this.locked && this.shapePoints.length > 0 ? this.shapePoints : this.generateShapePoints();
     for (let pt of points) {
       curveVertex(pt.x, pt.y);
     }
@@ -197,7 +174,6 @@ class Dot {
   }
 }
 
-
 function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
+  resizeCanvas(2048, 1080);
 }
