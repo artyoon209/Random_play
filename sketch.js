@@ -69,8 +69,8 @@ function createRandomObject() {
   }
   dots.push(newDot);
 
-  let freq = random(100, 110);
-  let dur = 0.05;
+  let freq = random(150, 160);
+  let dur = 0.08;
   osc.freq(freq);
   osc.amp(0.3, 0.01);
   setTimeout(() => {
@@ -83,7 +83,7 @@ class Dot {
     this.pos = createVector(x, y);
     this.baseRadius = 5;
     this.radius = this.baseRadius;
-    this.targetRadius = random(20, 50);
+    this.targetRadius = random(20, 70);
     this.growthSpeed = 6;
     this.color = random([
       color(255, 100, 100),
