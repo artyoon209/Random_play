@@ -16,7 +16,7 @@ function setup() {
   reverb = new p5.Reverb();
   osc.disconnect();
   osc.connect(reverb);
-  reverb.process(osc, 0.5 , 0.5);
+  reverb.process(osc, 0.3 , 0.3);
 
   for (let i = 0; i < 3; i++) {
     createRandomObject();
@@ -72,7 +72,7 @@ function createRandomObject() {
   let freq = random(150, 160);
   let dur = 0.08;
   osc.freq(freq);
-  osc.amp(0.8, 0.01);
+  osc.amp(1, 0.01);
   setTimeout(() => {
     osc.amp(0, 0.07);
   }, dur * 300);
@@ -89,7 +89,10 @@ class Dot {
       color(255, 100, 100),
       color(255, 180, 180),
       color(100, 150, 255),
-      color(180, 210, 255)
+      color(180, 210, 255),
+      color(255, 165, 0),
+      color(0, 128, 0),
+      color(255, 255, 0)
     ]);
     this.locked = false;
     this.shapePoints = [];
