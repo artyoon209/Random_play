@@ -24,7 +24,7 @@ function setup() {
 
 function scheduleNext() {
   if (!isRunning) return;
-  let delay = random(200, 250);
+  let delay = random(100, 150);
   for (let i = 0; i < 3; i++) createRandomObject();
   setTimeout(scheduleNext, delay);
 }
